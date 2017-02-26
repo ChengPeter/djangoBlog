@@ -1,0 +1,269 @@
+from django.shortcuts import render, redirect, RequestContext
+from .models import Article, Category, Tag, ContactForm
+from django.views.generic import ListView, DetailView
+import markdown2
+from django.db.models import F
+from django.core.cache import cache
+from ipware.ip import get_real_ip
+import smtplib
+from email.mime.text import MIMEText
+from email.header import Header
+from django.contrib.syndication.views import Feed
+
+
+# Create your views here.
+
+class IndexView(ListView):
+    template_name = 'blog/index.html'
+    context_object_name = 'article_list'
+
+    def get_queryset(self):
+        article_list = Article.objects.filter(status='p')
+        for article in article_list:
+            article.body = markdown2.markdown(article.body, extras=['fenced-code-blocks'], )
+        return article_list
+
+    def get_context_data(self, **kwargs):
+        category_dic = {}
+        date_dic = {}
+        category_list = Category.objects.all().order_by('name')
+        for cate in category_list:
+            category_dic[cate] = Article.objects.filter(category_id=cate.id).count()
+        kwargs['category_dic'] = category_dic
+        kwargs['tag_list'] = Tag.objects.all().order_by('name')
+        date_dic = {}
+        date_archive = Article.objects.archive()
+        for year, months in date_archive:
+            month_list = []
+            for month in months:
+                month_dic = {}
+                month_dic[month] = Article.objects.filter(created_time__year=year, created_time__month=month).count()
+                month_list.append(month_dic)
+            date_dic[year] = month_list
+        kwargs['date_dic'] = date_dic
+        kwargs['error'] = False
+        return super(IndexView, self).get_context_data(**kwargs)
+
+
+class ArticleDetailView(DetailView):
+    model = Article
+    template_name = 'blog\detail.html'
+    context_object_name = 'article'
+    pk_url_kwarg = "article_id"
+
+    def get_object(self):
+        obj = super(ArticleDetailView, self).get_object()
+        ip = get_real_ip
+        visited_ips = cache.get(obj.id, [])
+        if ip not in visited_ips:
+            Article.objects.filter(id=obj.id).update(views=F('views') + 1)
+            visited_ips.append(ip)
+            cache.set(obj.id, visited_ips, 24 * 60)
+        obj.body = markdown2.markdown(obj.body, extras=['fenced-code-blocks'], )
+        return obj
+    def get_context_data(self, **kwargs):
+        article_nearby=[];
+        try:
+            article_prev= Article.objects.get(id=(int(self.kwargs['article_id'])-1))
+            article_nearby.append(article_prev)
+        except :
+            article_nearby.append(None)
+        try:
+            article_next= Article.objects.get(id=(int(self.kwargs['article_id'])+1))
+            article_nearby.append(article_next)
+        except:
+            article_nearby.append(None)
+        kwargs['article_nearby'] = article_nearby
+        return super(ArticleDetailView, self).get_context_data(**kwargs)
+
+
+class CategoryView(ListView):
+    template_name = 'blog\index.html'
+    context_object_name = 'article_list'
+
+    def get_queryset(self):
+        article_list = Article.objects.filter(category=self.kwargs['cate_id'], status='p')
+        for article in article_list:
+            article.body = markdown2.markdown(article.body, extras=['fenced-code-blocks'], )
+        return article_list
+
+    def get_context_data(self, **kwargs):
+        category_dic = {}
+        category_list = Category.objects.all().order_by('name')
+        for cate in category_list:
+            category_dic[cate] = Article.objects.filter(category_id=cate.id).count()
+        kwargs['category_dic'] = category_dic
+        kwargs['tag_list'] = Tag.objects.all().order_by('name')
+        date_dic = {}
+        date_archive = Article.objects.archive()
+        for year, months in date_archive:
+            month_list = []
+            for month in months:
+                month_dic = {}
+                month_dic[month] = Article.objects.filter(created_time__year=year, created_time__month=month).count()
+                month_list.append(month_dic)
+            date_dic[year] = month_list
+        kwargs['date_dic'] = date_dic
+        return super(CategoryView, self).get_context_data(**kwargs)
+
+
+class TagView(ListView):
+    template_name = 'blog\index.html'
+    context_object_name = 'article_list'
+
+    def get_queryset(self):
+        article_list = Article.objects.filter(tags=self.kwargs['tag_id'], status='p')
+        for article in article_list:
+            article.body = markdown2.markdown(article.body, extras=['fenced-code-blocks'], )
+        return article_list
+
+    def get_context_data(self, **kwargs):
+        category_dic = {}
+        category_list = Category.objects.all().order_by('name')
+        for cate in category_list:
+            category_dic[cate] = Article.objects.filter(category_id=cate.id).count()
+        kwargs['category_dic'] = category_dic
+        kwargs['tag_list'] = Tag.objects.all().order_by('name')
+        date_dic = {}
+        date_archive = Article.objects.archive()
+        for year, months in date_archive:
+            month_list = []
+            for month in months:
+                month_dic = {}
+                month_dic[month] = Article.objects.filter(created_time__year=year, created_time__month=month).count()
+                month_list.append(month_dic)
+            date_dic[year] = month_list
+        kwargs['date_dic'] = date_dic
+        return super(TagView, self).get_context_data(**kwargs)
+
+
+class ArchiveView(ListView):
+    template_name = "blog/index.html"
+    context_object_name = "article_list"
+
+    def get_queryset(self):
+        year = int(self.kwargs['year'])
+        month = int(self.kwargs['month'])
+        article_list = Article.objects.filter(created_time__year=year, created_time__month=month)
+        for article in article_list:
+            article.body = markdown2.markdown(article.body, extras=['fenced-code-blocks'], )
+        return article_list
+
+    def get_context_data(self, **kwargs):
+        category_dic = {}
+        category_list = Category.objects.all().order_by('name')
+        for cate in category_list:
+            category_dic[cate] = Article.objects.filter(category_id=cate.id).count()
+        kwargs['category_dic'] = category_dic
+        kwargs['tag_list'] = Tag.objects.all().order_by('name')
+        date_dic = {}
+        date_archive = Article.objects.archive()
+        for year, months in date_archive:
+            month_list = []
+            for month in months:
+                month_dic = {}
+                month_dic[month] = Article.objects.filter(created_time__year=year, created_time__month=month).count()
+                month_list.append(month_dic)
+            date_dic[year] = month_list
+        kwargs['date_dic'] = date_dic
+        return super(ArchiveView, self).get_context_data(**kwargs)
+
+
+class ArticleListView(ListView):
+    template_name = 'blog/list.html'
+    context_object_name = 'article_list'
+
+    def get_queryset(self):
+        article_list = Article.objects.filter(status='p')
+        return article_list
+
+
+def About(request):
+    context = {}
+    return render(request, "blog/about.html", context)
+
+
+def Contact(request):
+    context = {}
+    return render(request, 'blog/contact.html', context)
+
+
+def Article_search(request):
+    if 's' in request.GET:
+        s = request.GET['s']
+        if not s:
+            return render(request, 'blog/index.html')
+        else:
+            article_list = Article.objects.filter(title__icontains=s)
+            for article in article_list:
+                article.body = markdown2.markdown(article.body, extras=['fenced-code-blocks'], )
+            category_dic = {}
+            category_list = Category.objects.all().order_by('name')
+            for cate in category_list:
+                category_dic[cate] = Article.objects.filter(category_id=cate.id).count()
+            tag_list = Tag.objects.all().order_by('name')
+            date_dic = {}
+            date_archive = Article.objects.archive()
+            for year, months in date_archive:
+                month_list = []
+                for month in months:
+                    month_dic = {}
+                    month_dic[month] = Article.objects.filter(created_time__year=year,
+                                                              created_time__month=month).count()
+                    month_list.append(month_dic)
+                date_dic[year] = month_list
+            if len(article_list) == 0:
+                return render(request, 'blog/index.html', {'article_list': article_list,
+                                                           'category_dic': category_dic, 'tag_list': tag_list,
+                                                           'date_dic': date_dic, 'error': True})
+            else:
+                return render(request, 'blog/index.html', {'article_list': article_list,
+                                                           'category_dic': category_dic, 'tag_list': tag_list,
+                                                           'date_dic': date_dic,
+                                                           'error': False})
+    return redirect('/')
+
+
+def SendMail(request):
+    mail_host = "smtp.qq.com"
+    mail_user = "714905267@qq.com"
+    mail_pass = "cgldjpgfgzbhbaij"
+    receivers = ['714905267@qq.com']
+    if request.method == 'POST':
+        form = ContactForm(request.POST)
+        if form.is_valid():
+            data = form.cleaned_data
+            message = MIMEText(data['message'], 'plain', 'utf-8')
+            message['From'] = Header(data['name'] + '<' + data['email'] + '>', 'utf-8')
+            message['To'] = Header('PeterCheng<714905267@qq.com>', 'utf-8')
+            message['Subject'] = Header(data['subject'], 'utf-8')
+            try:
+                smtpObj = smtplib.SMTP_SSL(mail_host, 465)
+                smtpObj.login(mail_user, mail_pass)
+                smtpObj.sendmail(mail_user, receivers, message.as_string())
+                return render(request, 'blog/contact.html', {'submit': True})
+            except smtplib.SMTPException:
+                return render(request, 'blog/contact.html')
+    else:
+        form = ContactForm()
+        return render(request, 'blog/contact.html')
+
+
+class RSSFeed(Feed):
+    title = "RSS feed - article"
+    link = "/blog/feed/"
+    description = "RSS feed - blog posts"
+
+    def items(self):
+        return Article.objects.filter(status='p').order_by('-last_modified_time')[:5]
+
+    def item_title(self, item):
+        return item.title
+
+    def item_description(self, item):
+        return item.body
+
+    def item_link(self, item):
+        return '/blog/article/%s/' % item.pk
+
+

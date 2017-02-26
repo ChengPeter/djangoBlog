@@ -1,0 +1,61 @@
+{% extends 'blog/base.html' %}
+{% block content %}
+<nav class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="{% url 'blog:about' %}">PeterCheng</a>
+        </div>
+        <div class="collapse navbar-collapse" id="myNavbar">
+            <ul class="nav navbar-nav navbar-right">
+                <li><a href="{% url 'blog:index' %}">Home</a></li>
+                <li><a href="{% url 'blog:list' %}">Blog</a></li>
+                <li><a href="{% url 'blog:about' %}">About</a></li>
+                <li><a href="{% url 'blog:contact' %}">Contact</a></li>
+                <li>
+                    <form class="navbar-form">
+                        <input type="text" class="form-control" name="s" placeholder="search" id="search">
+                    </form>
+            </ul>
+        </div>
+    </div>
+</nav>
+<div id="content">
+<div class="row">
+    <div class="col-sm-12" style="padding-left=30dp;">
+        <div class="blog">
+            <h3 class="blog-title text-center">{{ article.title }}</h3>
+
+            <div class="blog-header text-center">
+                <span class="glyphicon glyphicon-tag"></span> <a href="#">{{ article.category.name }}</a>
+                <span class="glyphicon glyphicon-calendar"></span> <a
+                    href="#">{{ article.last_modified_time|date:"Y年n月d日" }}</a>
+                <span class="glyphicon glyphicon-user"></span> <a href="#">PeterCheng</a>
+                <span class="glyphicon glyphicon-eye-open"></span> <a href="#"> {{ article.views }}view{{ article.views|pluralize }}</a>
+            </div>
+            <div class="blog-content1 text-left" >
+                <p> {{ article.body |safe }}</p>
+            </div>
+            <div>
+                {% if article_nearby.0 %}
+                <p class="pull-left"><a href="{% url 'blog:detail' article_nearby.0.pk %}"> << {{ article_nearby.0.title }}上一篇</a></p>
+                {% else %}
+                <p class="pull-left">无上一篇</p>
+                {% endif %}
+                {% if article_nearby.1 %}
+                <p class="pull-right"><a href="{% url 'blog:detail' article_nearby.1.pk %}">下一篇 {{ article_nearby.1.title }} >> </a></p>
+                {% else %}
+                <p class="pull-right">无下一篇</p>
+                {% endif %}
+            </div> 
+            {% include 'blog/duoshuo.html' %}
+        </div>
+      
+    </div>
+</div>
+</div>
+{% endblock %}

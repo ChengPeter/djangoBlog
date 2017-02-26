@@ -1,0 +1,135 @@
+{% extends 'blog/base.html' %}
+{% block content %}
+    {% load staticfiles %}
+    <!--轮播图片-->
+    <div id="myCarousel" class="carousel slide text-center" data-ride="carousel">
+        <!--轮播图片的计数器，是一个有序列表,就是图片下的小圆圈-->
+        <ol class="carousel-indicators">
+            <li data-target="#myCarousel" data-slide-to="0" class="active"></li>
+            <li data-target="#myCarousel" data-slide-to="1"></li>
+            <li data-target="#myCarousel" data-slide-to="2"></li>
+        </ol>
+        <!--轮播图片的来源-->
+        <div class="carousel-inner" role="listbox">
+            <div class="item active">
+                <img src="{% static 'blog/img/lunbo1.jpg' %}" alt="pic1">
+            </div>
+            <div class="item">
+                <img src="{% static 'blog/img/lunbo2.jpg' %}" alt="pic2">
+            </div>
+            <div class="item">
+                <img src="{% static 'blog/img/lunbo3.jpg' %}" alt="pic3">
+            </div>
+        </div>
+        <!--轮播图片的控制器，上一张，下一张-->
+        <a class="left carousel-control" href="#myCarousel" role="button" data-slide="prev">
+            <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
+            <span class="sr-only">Previous</span>
+        </a>
+        <a class="right carousel-control" href="#myCarousel" role="button" data-slide="next">
+            <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
+            <span class="sr-only">Next</span>
+        </a>
+    </div>
+    <!--博客主体-->
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-sm-9 text-center">
+                {% if error %}
+                    <h2>There is nothing!</h2>
+                {% else %}
+                    {% load paginate_tags %}
+                    {% paginate article_list 5 %}
+                    {% if article_list %}
+                        {% for article in article_list %}
+                            <div class="blog">
+                                <h3 class="blog-title"><a
+                                        href="{% url 'blog:detail' article.pk %}">{{ article.title }}</a></h3>
+
+                                <div class="blog-header">
+                                    <span class="glyphicon glyphicon-tag"></span>  <a href="#">{{ article.category.name }}</a>
+                                    <span class="glyphicon glyphicon-calendar"></span>  <a
+                                            href="#">{{ article.last_modified_time |date:"Y年n月d日"}}</a>
+                                    <span class="glyphicon glyphicon-user"></span>  <a href="#">PeterCheng</a>
+                                    <span class="glyphicon glyphicon-eye-open"></span>  <a href="#">{{ article.views }}view{{ article.views|pluralize}}</a>
+                                </div>
+                                <div class="blog-content text-left">
+                                    <p>
+                                        {% autoescape off %}
+                                            {{ article.body|slice:"100" }}
+                                        {% endautoescape %}
+                                    </p>
+                                </div>
+                                <div class="linkDetail">
+                                    <a href="{% url 'blog:detail' article.pk %}">CONTINUE READING</a>
+                                </div>
+                            </div>
+                        {% endfor %}
+                        {% include 'blog/pagination.html' %}
+                    {% else %}
+                        <h1>There is nothing!</h1>
+                    {% endif %}
+                {% endif %}
+            </div>
+            <!--侧边栏-->
+            <div class="col-sm-3">
+                <div class="side">
+                    <div class="aboutMe text-center">
+                        <h3>About</h3>
+                        <img src="{% static 'blog/img/me2.jpg' %}" class="img-circle" alt="me" width="150" height="150">
+
+                        <h3>PeterCheng</h3>
+
+                        <p style="font-size:15px;">Hi,I'm PeterCheng,welcome to visit my blog site.If you have any
+                            questions,please contact me and let me know.</p>
+                    </div>
+                    <div class="category">
+                        <ul> <h3 class="text-center">CATOGORIES</h3>
+                            {% for category,value in category_dic.iteritems %}
+                                <li><a href="{% url 'blog:category' category.pk %}">{{ category.name }}</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span
+                                        class="badge">{{ value }}</span></li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    <div class="tag">
+                        <h3 class="text-center">TAGS</h3>
+                        {% for tag in tag_list %}
+                            <a href="{% url 'blog:tag' tag.pk %}" class="btn btn-primary">{{ tag.name }}</a>
+                        {% endfor %}
+                    </div>
+                    <div class="archive">
+                        <h3 class="text-center">ARCHIVES</h3>
+
+                        <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+                            {% for year,months in date_dic.iteritems %}
+                                <div class="panel panel-default">
+                                    <div class="panel-heading" role="tab" id="heading{{ forloop.counter }}">
+                                        <h4 class="panel-title">
+                                            <a role="button" data-toggle="collapse" data-parent="#accordion"
+                                               href="#collapse{{ forloop.counter }}"
+                                               aria-expanded="true" aria-controls="collapse{{ forloop.counter }}">
+                                                {{ year }} 年
+                                            </a>
+                                        </h4>
+                                    </div>
+                                    <div id="collapse{{ forloop.counter }}" class="panel-collapse collapse in"
+                                         role="tabpanel"
+                                         aria-labelledby="heading{{ forloop.counter }}">
+                                        <div class="panel-body">
+                                            {% for month_dic in months %}
+                                                {% for month,value in month_dic.iteritems %}
+                                                    <a href="{% url 'blog:archive' year month %}">{{ month }}月<span
+                                                            class="badge pull-right">{{ value }}</span></a>
+                                                {% endfor %}
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

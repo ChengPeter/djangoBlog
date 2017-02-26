@@ -1,0 +1,49 @@
+{% extends 'blog/base.html' %}
+{% block content %}
+<nav class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="{% url 'blog:about' %}">PeterCheng</a>
+        </div>
+        <div class="collapse navbar-collapse" id="myNavbar">
+            <ul class="nav navbar-nav navbar-right">
+                <li><a href="{% url 'blog:index' %}">Home</a></li>
+                <li class="active"><a href="{% url 'blog:list' %}">Blog</a></li>
+                <li><a href="{% url 'blog:about' %}">About</a></li>
+                <li><a href="{% url 'blog:contact' %}">Contact</a></li>
+                <li>
+                    <form class="navbar-form">
+                        <input type="text" class="form-control" name="s" placeholder="search" id="search">
+                    </form>
+            </ul>
+        </div>
+    </div>
+</nav>
+<div id="content"> 
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="listAll">
+                <ul>
+                    {% if article_list %}
+                        {% for article in article_list %}
+                            <li>
+                                <a href="{% url 'blog:detail'  article.pk %}"
+                                       style="font-size: 16px;text-align: justify;text-justify:inter-ideograph;">
+                                        {{ article.last_modified_time |date:"Y年n月d日" }}--------------{{ article.title }}
+                                </a>
+                            </li>
+                        {% endfor %}
+                        {% else %}
+                            <h1>There is nothing!</h1>
+                        {% endif %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

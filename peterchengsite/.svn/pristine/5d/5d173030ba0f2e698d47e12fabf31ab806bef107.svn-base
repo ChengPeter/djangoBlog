@@ -1,0 +1,28 @@
+{% extends 'blog/base.html' %}
+{% block content %}
+{% load staticfiles %}
+<div class="content-body">
+    <div class="container">
+        <div class="row">
+            <main class="col-md-12 text-center">
+                <h3>About Me</h3>
+                <img src="{% static 'blog/img/me2.jpg' %}" class="img-circle" alt="me" width="150" height="150">
+                <div class="entry-content">
+                    <p>大家好，我是PeterCheng，我是一枚程序猿，python爱好者，这个网站用Django框架开发，欢迎大家向我
+                        <a href="{% url 'blog:contact' %}">吐槽</a></p>
+                    <p>下面是我的联系方式，欢迎大家和我联系，一起交流，一起进步( ^_^ )</p>
+                    <h3 class="title">Contact Me</h3>
+                    <div class="contactMe">
+                        <a href="http://weibo.com/3339588240/profile?rightmod=1&wvr=6&mod=personinfo&is_all=1"
+                           target="_blank"><img src="{% static 'blog/img/weibo.png' %}"></a>
+                        <a href="http://wpa.qq.com/msgrd?v=3&uin=714905267&site=qq&menu=yes"
+                           target="_blank"><img src="{% static 'blog/img/qq.png' %}"></a>
+                        <a href="https://github.com/ChengPeter?tab=repositories" target="_blank"><img
+                                src="{% static 'blog/img/github.png' %}"></a>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+{% load staticfiles %}
+<html lang="en">
+<head>
+	<title>PeterCheng’s Blog</title>
+	<meta charset="utf-8">
+	<!--使得网页适应移动浏览器的大小，初始的缩放比例为1.0，最大的缩放比例为1.0，不允许用户手动缩放-->
+	<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=0">
+	<!-- link -->
+	<link rel="stylesheet" href="{% static 'blog/css/bootstrap.min.css' %}">
+	<link rel="stylesheet" href="{% static 'blog/css/blog.css' %}">
+	<link href="http://fonts.googleapis.com/css?family=Montserrat" rel="stylesheet" type="text/css">
+	<link href="http://fonts.googleapis.com/css?family=Lato" rel="stylesheet" type="text/css">
+	<!-- js -->
+	<script src="{% static  'blog/js/jquery.2.1.1.min.js' %}"></script>
+	<script src="{% static  'blog/js/bootstrap.js' %}"></script>
+	<script src="{% static  'blog/js/blog.js' %}"></script>
+	<script type="text/javascript"
+			src="http://api.map.baidu.com/api?v=2.0&ak=NKo8oPjYvkvqXlzTuvWG4z50DmzG83af"></script>
+</head>
+<body>
+<!--导航条-->
+{% block content %}
+{% endblock %}
+<!--回到顶部-->
+<div id="back-to-top">
+	<img src="{% static 'blog/img/top.png' %}" width="40px">
+</div>
+<!--网页页脚-->
+<footer class="container-fluid bottom">
+	<nav class="navbar navbar-default copyright">
+		<div class="row">
+			<div class="col-sm-6">
+				<h5>SUBSCRIBE & CONTACT</h5>
+				<div class="contact">
+					<a href="http://weibo.com/3339588240/profile?rightmod=1&wvr=6&mod=personinfo&is_all=1"
+					   target="_blank" title="visit my sina weibo"><img src="{% static 'blog/img/weibo1.png' %}"></a>
+					<a href="http://wpa.qq.com/msgrd?v=3&uin=714905267&site=qq&menu=yes"
+					   target="_blank" title="chat me with my qq"><img src="{% static 'blog/img/qq1.png' %}"></a>
+					<a href="https://github.com/ChengPeter?tab=repositories" target="_blank" title="visit my github"><img
+							src="{% static 'blog/img/github1.png' %}"></a>
+					<a href="{% url 'blog:rss' %}" target="_blank" title="subscribe my rss"><img
+							src="{% static 'blog/img/rss1.png' %}"></a>
+				</div>
+			</div>
+			<div class="col-sm-6">
+				<div class="links">
+					<ul>LINKS
+						<li><a href="http://www.dannysite.com/">DANNY SITE</a></li>
+						<li><a href="http://maniac.wiki/">色魔科技</a></li>
+						<li><a href="https://www.knowsec.org/">KnowSec</a></li>
+						<li><a href="https://www.lmva.cc/">liMa's Blog</a></li>
+					</ul>
+				</div>
+			</div>
+		</div>
+		<div class="navbar-inner navbar-content-center text-center">
+			<p>Copyright&copy;:2016 Designed by PeterCheng</p>
+		</div>
+	</nav>
+</footer>
+
+<!--模态对话框-->
+<div class="modal fade text-center" id="myModal" tabindex="-1">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span
+						class="sr-only">Close</span></button>
+				<h4 class="modal-title">Search What You Want</h4>
+			</div>
+			<div class="modal-body">
+				<form class="form-inline" method="get" action="{% url 'blog:search' %}">
+					<input class="form-control" type="text" name="s"/>
+					<button class="btn btn-danger" type="button" data-dismiss="modal">Submit</button>
+				</form>
+			</div>
+		</div>
+	</div>
+</div>
+</body>
+</html>
+<script type="text/javascript">
+	var map = new BMap.Map("allmap");
+	var point = new BMap.Point(114.363457, 30.545042);
+	map.centerAndZoom(point, 14);
+	map.addControl(new BMap.MapTypeControl());   //添加地图类型控件
+	map.enableScrollWheelZoom(false);     //开启鼠标滚轮缩放
+	var marker = new BMap.Marker(point);
+	map.addOverlay(marker);
+	marker.setAnimation(BMAP_ANIMATION_BOUNCE); //跳动的动画
+	var opts = {
+		width: 200,     // 信息窗口宽度
+		height: 100,     // 信息窗口高度
+		title: "武汉大学计算机学院", // 信息窗口标题
+		enableMessage: true,//设置允许信息窗发送短息
+		message: ""
+	}
+	var infoWindow = new BMap.InfoWindow("地址：湖北省武汉市武昌区八一路299号武汉大学本部计算机学院", opts);  // 创建信息窗口对象
+	marker.addEventListener("click", function () {
+		map.openInfoWindow(infoWindow, point); //开启信息窗口
+	});
+</script>
